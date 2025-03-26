@@ -1,0 +1,91 @@
+import java.util.Scanner;
+
+class Process {
+    int pid, arrivalTime, burstTime, completionTime, turnaroundTime, waitingTime, remainingTime;
+
+    Process(int pid, int arrivalTime, int burstTime) {
+        this.pid = pid;
+        this.arrivalTime = arrivalTime;
+        this.burstTime = burstTime;
+        this.remainingTime = burstTime; 
+    }
+}
+
+public class Main{
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        
+        System.out.print("Enter the number of processes: ");
+        int n = sc.nextInt();
+        
+        System.out.print("Enter Time Quantum: ");
+        int timeQuantum = sc.nextInt();
+
+        Process[] processes = new Process[n];
+
+        for (int i = 0; i < n; i++) {
+            System.out.print("Enter Arrival Time and Burst Time for Process " + (i + 1) + ": ");
+            int at = sc.nextInt();
+            int bt = sc.nextInt();
+            processes[i] = new Process(i + 1, at, bt);
+        }
+
+        java.util.Arrays.sort(processes, (p1, p2) -> Integer.compare(p1.arrivalTime, p2.arrivalTime));
+
+        int currentTime = 0, completed = 0;
+        float totalTAT = 0, totalWT = 0;
+        boolean isExecuted; 
+
+        System.out.println("\nGantt Chart Execution:");
+        
+        while (completed < n) {
+            isExecuted = false;
+
+            for (int i = 0; i < n; i++) {
+                if (processes[i].remainingTime > 0 && processes[i].arrivalTime <= currentTime) {
+                    isExecuted = true; 
+                    
+                    System.out.print(" | P" + processes[i].pid + " ");
+
+                    int executionTime = Math.min(timeQuantum, processes[i].remainingTime);
+                    currentTime += executionTime;
+                    processes[i].remainingTime -= executionTime;
+
+                    if (processes[i].remainingTime == 0) { 
+                        processes[i].completionTime = currentTime;
+                        processes[i].turnaroundTime = processes[i].completionTime - processes[i].arrivalTime;
+                        processes[i].waitingTime = processes[i].turnaroundTime - processes[i].burstTime;
+
+                        totalTAT += processes[i].turnaroundTime;
+                        totalWT += processes[i].waitingTime;
+                        completed++;
+                    }
+                }
+            }
+
+            if (!isExecuted) {
+                currentTime++;
+            }
+        }
+        System.out.println(" |");
+
+        System.out.println("\nPID\tAT\tBT\tCT\tTAT\tWT");
+        for (Process p : processes) {
+            System.out.println(p.pid + "\t" + p.arrivalTime + "\t" + p.burstTime + "\t" +
+                    p.completionTime + "\t" + p.turnaroundTime + "\t" + p.waitingTime);
+        }
+
+        System.out.printf("\nAverage Turnaround Time: %.2f", totalTAT / n);
+        System.out.printf("\nAverage Waiting Time: %.2f", totalWT / n);
+
+        sc.close();
+    }
+}
+Example
+3
+2
+0 5
+2 3 
+4 2
+
+
